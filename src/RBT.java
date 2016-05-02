@@ -7,7 +7,7 @@ import java.util.Stack;
 public class RBT<Elem extends Comparable<Elem>> {
     static final boolean RED=true;
     static final boolean BLACK =false;
-
+    int allNodes = 1;
     private Node _root;
 
     public RBT()
@@ -24,8 +24,9 @@ public class RBT<Elem extends Comparable<Elem>> {
             node = cmp < 0 ? node.left : node.right;
         return node;
     }
-    private Node rotateL(Node t)    { Node x=t.right;
-        t.right=x.left;
+    private Node rotateL(Node t)    {
+        Node x=t.right;
+        t.right = x.left;
         x.left=t;
         x.color=t.color;
         t.color=RED;
@@ -36,10 +37,14 @@ public class RBT<Elem extends Comparable<Elem>> {
         x.color=t.color;
         t.color=RED;
         return x; }
+
+
     private void colorFlip(Node t)
     {t.color=!t.color; t.left.color=!t.left.color; t.right.color=!t.right.color; }
-    public void insert(Elem x)
-    { _root= insert(x,_root); _root.color=BLACK;}
+  /*  public void insert(Elem x)
+    { _root= insert(x,_root);
+        _root.color=BLACK;
+    allNodes++;}
     protected Node insert(Elem x, Node t) {
         if(t== null) t=new Node(x);
         else { int cmp=x.compareTo(t.value);
@@ -51,7 +56,124 @@ public class RBT<Elem extends Comparable<Elem>> {
             t=fixUp(t);
         }
         return t;
+    }   */
+    protected Node findParent(Elem val) {
+        if(_root == null) {
+            return null;
+        }
+        Node current = _root;
+        Node parent = current;
+        if(current.value == val) { //found
+            return null;
+        }
+        while(true) {
+            if(current == null) { //not found
+                return null;
+            }
+            if(current.value == val) { //found
+                return parent;
+            }
+
+            parent = current;
+            if((current.value).compareTo(val) > 0) { //go left
+                current = current.left;
+            }
+            else { //go right
+                current = current.right;
+            }
+        }
     }
+    protected Node findUncle(Elem val)
+    {
+        Node grandParent = findParent(findParent(val).value);
+        if(grandParent == null)
+            return null;
+        if((grandParent.value).compareTo(val) > 0)
+        {
+            return grandParent.right;
+        }
+        else
+            return grandParent.left;
+    }
+    public void repair(Elem val)
+    {
+        Node n = search(val);
+        Node uncle = findUncle(val);
+        Node parent = findParent(val);
+        Node grandPa = findParent(findParent(val).value);
+        Node father = findParent(val);
+        // czerwony wujek
+        if(uncle != null && uncle.color == true)
+        {
+            father.color = false;
+            uncle.color = false;
+            grandPa.color = true;
+
+        }
+        // czarny wujek
+       else if(uncle == null || uncle.color == false)
+        {
+            //prawy syn
+            if(parent.right != null && parent.right.value == val && grandPa !=null)
+            {
+                n = father;
+              //  grandPa.left = rotateL(n);
+                father = findParent(val);
+                grandPa.left= rotateL(n);
+                father.color = false;
+                Elem x = _root.value;
+                _root.value = _root.left.value;
+               // _root.right.value = x;
+
+           //  n =  rotateR(n);
+             /*   father.color = false;
+                grandPa.color = true;
+                rotateR(n); */
+            }
+            //lewy syn
+           else if (parent.left != null && parent.left.value == val && grandPa !=null)
+            {
+                father.color = false;
+                grandPa.color = true;
+                rotateR(grandPa);
+            }
+        }
+        _root.color = false;
+    }
+    public void insert(Elem id){
+        Node newNode = new Node(id);
+        if(_root==null){
+            _root = newNode;
+            _root.color = false;
+            allNodes++;
+            return;
+        }
+        Node current = _root;
+        Node parent = null;
+        while(true){
+            parent = current;
+            if(id.compareTo(current.value) <0){
+                current = current.left;
+                if(current==null){
+                    parent.left = newNode;
+                    allNodes++;
+                    repair(id);
+                    return;
+                }
+            }else{
+                current = current.right;
+                if(current==null){
+                    parent.right = newNode;
+                    allNodes++;
+                    repair(id);
+                    return;
+                }
+            }
+        }
+
+    }
+
+
     void printLevelOrder()    {
         int h = height(_root);
         int i;
@@ -198,10 +320,44 @@ public class RBT<Elem extends Comparable<Elem>> {
             t=fixUp(t); }
         return t;
     }
+    int sum = 0;
+    int nodes(Node node)
+    {
+        if( node == null )
+            return 0;
+        else
+        {
+            sum++;
+            return nodes(node.left) +  outsideNodes(node.right);
+        }
 
-    public String toString()
-    {return toString(_root,0);}
+    }
+    int outsideNodes(Node node)    {
 
+        if( node == null )
+            return 0;
+
+
+        if( node.left == null && node.right == null ) {
+            return sum + 2;
+        }
+        else if(node.left == null )
+        {
+            sum++;
+            return outsideNodes(node.right);
+        }
+        else if(node.right == null )
+        {
+            sum++;
+            return outsideNodes( node.left);
+        }
+        else
+        {
+            return outsideNodes(node.left) +  outsideNodes(node.right);
+        }
+
+    }
+    public String toString()    {return toString(_root,0);}
     private String toString(Node t,int pos) {
         String result="";
         String spaces="                                                                                                                                                                                                     ";
@@ -210,7 +366,6 @@ public class RBT<Elem extends Comparable<Elem>> {
         else result=result+String.format("%n");
         return result;
     }
-
     class Node{
         Elem value;
         Node left;
@@ -222,25 +377,27 @@ public class RBT<Elem extends Comparable<Elem>> {
     public static void main(String[] args) {
 
         RBT rbt = new RBT();
-        rbt.insert(9);
-        rbt.insert(99);
-        rbt.insert(6);
-        rbt.insert(17);
-        rbt.insert(7);
-        rbt.insert(8);
+        rbt.insert(20);
         rbt.insert(10);
         rbt.insert(15);
-        rbt.printLevelOrder();
-        System.out.println();
+    //    rbt.insert(18);
+      // rbt.insert(15);
+    //    rbt.insert(16);
+        //rbt.insert(12);
+       // rbt.insert(15);
+      //  rbt.printLevelOrder();
+      System.out.println();
         rbt.displayTree();
-        System.out.println("Czy istnieje elment o kluczu "+ rbt.find(17));
+   /*     System.out.println("Czy istnieje elment o kluczu "+ rbt.find(16));
         System.out.println("Wysokosc aktualnego drzewa: " + rbt.heightRoot(rbt._root));
         System.out.println("Liście: " + rbt.countLeaves(rbt._root));
+        System.out.println("Wszystkie wezły: " + rbt.allNodes);
+//        System.out.println("parent: " + rbt.findParent(18).value);
+     //   System.out.println("parent: " + rbt.countLeaves(rbt.findParent(16))); */
 
-        RBT rbt2 = new RBT();
-        Data a = new Data(rbt.heightRoot(rbt._root),89, rbt.countLeaves(rbt._root));
-        int [] tab = new int[5];
-        rbt2.insert("");
+
+      //  Data a = new Data(rbt.heightRoot(rbt._root),89, rbt.countLeaves(rbt._root));
+
     }
 
 

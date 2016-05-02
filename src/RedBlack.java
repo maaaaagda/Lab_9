@@ -2,6 +2,8 @@
  * Created by Magdalena Polak on 26.04.2016.
  */
 import java.awt.*;
+import java.awt.image.ImageObserver;
+import java.text.AttributedCharacterIterator;
 import javax.swing.*;
 /*
 
@@ -60,7 +62,7 @@ public class RedBlack<Key extends Comparable<Key>, Value> implements Icon {
         return root.getNode(key) != null;
     }
 
-    private class Node {
+    public class Node {
         public Key    key;
         public Value  value;
 
@@ -201,6 +203,53 @@ public class RedBlack<Key extends Comparable<Key>, Value> implements Icon {
             drawCenteredString(g, "" + key, x, y);
         }
     }
+    void printLevelOrder()    {
+        int h = height(root);
+        int i;
+        for (i=1; i<=h; i++)
+            printGivenLevel(root, i);
+    }
+    void printGivenLevel (Node root , int level)    {
+        if (root == null)
+            return;
+        if (level == 1)
+            System.out.print(root.value + "("+root.color + ")");
+        else if (level > 1)
+        {
+            printGivenLevel(root.left, level-1);
+            printGivenLevel(root.right, level-1);
+        }
+    }
+    int height(Node root)    {
+        if (root == null)
+            return 0;
+        else
+        {
+            /* compute  height of each subtree */
+            int lheight = height(root.left);
+            int rheight = height(root.right);
+
+            /* use the larger one */
+            if (lheight > rheight)
+                return(lheight+1);
+            else return(rheight+1);
+        }
+    }
+    int heightRoot(Node root)    {
+        if (root == null)
+            return 0;
+        else
+        {
+            /* compute  height of each subtree */
+            int lheight = height(root.left);
+            int rheight = height(root.right);
+
+            /* use the larger one */
+            if (lheight > rheight)
+                return(lheight);
+            else return(rheight);
+        }
+    }
 
     /** The empty node used at leaves */
     private class Empty extends Node {
@@ -275,9 +324,15 @@ public class RedBlack<Key extends Comparable<Key>, Value> implements Icon {
         g.drawString(s, (int)(x - bounds.getWidth() / 2), (int)(y - bounds.getMinY() - bounds.getHeight() / 2));
     }
     public static void main(String[] args) {
-       RedBlack<Integer, String> redBlack = new RedBlack();
-        redBlack.add(7, "wow");
-        redBlack.add(9, "wwow");
-        redBlack.add(19, "woww");
+       RedBlack<Integer, Data> redBlack = new RedBlack();
+        Data d = new Data(6,8, 7, 6);
+        redBlack.add(7, d);
+        redBlack.add(6, d);
+        redBlack.add(10, d);
+       // redBlack.add(9, "wwow");
+       // redBlack.add(19, "woww");
+        System.out.println(redBlack.root.value);
+        redBlack.printLevelOrder();
+
     }
 }
