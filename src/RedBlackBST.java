@@ -47,10 +47,7 @@ public class RedBlackBST<Key extends Comparable<Key>, Value> {
     }
     public void put(Key key, Value val) {
         if (key == null) throw new NullPointerException("first argument to put() is null");
-    /*    if (val == null) {
-            delete(key);
-            return;
-        } */
+
 
         root = put(root, key, val);
         root.color = BLACK;
