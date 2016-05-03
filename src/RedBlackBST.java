@@ -38,25 +38,6 @@ public class RedBlackBST<Key extends Comparable<Key>, Value> {
         if (x == null) return 0;
         return x.N;
     }
-    public boolean isEmpty() {
-        return root == null;
-    }
-    public Value get(Key key) {
-        if (key == null) throw new NullPointerException("argument to get() is null");
-        return get(root, key);
-    }
-    private Value get(Node x, Key key) {
-        while (x != null) {
-            int cmp = key.compareTo(x.key);
-            if      (cmp < 0) x = x.left;
-            else if (cmp > 0) x = x.right;
-            else              return x.val;
-        }
-        return null;
-    }
-    public boolean contains(Key key) {
-        return get(key) != null;
-    }
     private Node search(Key value) {
         Node node = root;
         int cmp=0;
@@ -164,55 +145,6 @@ public class RedBlackBST<Key extends Comparable<Key>, Value> {
         else
             return grandParent.left;
     }
-    private Node deleteMin(Node h) {
-        if (h.left == null)
-            return null;
-
-        if (!isRed(h.left) && !isRed(h.left.left))
-            h = moveRedLeft(h);
-
-        h.left = deleteMin(h.left);
-        return balance(h);
-    }
-    public void delete(Key key) {
-        if (key == null) throw new NullPointerException("argument to delete() is null");
-        if (!contains(key)) return;
-
-        // if both children of root are black, set root to red
-        if (!isRed(root.left) && !isRed(root.right))
-            root.color = RED;
-
-        root = delete(root, key);
-        if (!isEmpty()) root.color = BLACK;
-        // assert check();
-    }
-    private Node delete(Node h, Key key) {
-        // assert get(h, key) != null;
-
-        if (key.compareTo(h.key) < 0)  {
-            if (!isRed(h.left) && !isRed(h.left.left))
-                h = moveRedLeft(h);
-            h.left = delete(h.left, key);
-        }
-        else {
-            if (isRed(h.left))
-                h = rotateRight(h);
-            if (key.compareTo(h.key) == 0 && (h.right == null))
-                return null;
-            if (!isRed(h.right) && !isRed(h.right.left))
-                h = moveRedRight(h);
-            if (key.compareTo(h.key) == 0) {
-                Node x = min(h.right);
-                h.key = x.key;
-                h.val = x.val;
-                // h.val = get(h.right, min(h.right).key);
-                // h.key = min(h.right).key;
-                h.right = deleteMin(h.right);
-            }
-            else h.right = delete(h.right, key);
-        }
-        return balance(h);
-    }
     private Node rotateRight(Node h) {
         // assert (h != null) && isRed(h.left);
         Node x = h.left;
@@ -235,57 +167,10 @@ public class RedBlackBST<Key extends Comparable<Key>, Value> {
         h.N = size(h.left) + size(h.right) + 1;
         return x;
     }
-    private void flipColors(Node h) {
-        // h must have opposite color of its two children
-        // assert (h != null) && (h.left != null) && (h.right != null);
-        // assert (!isRed(h) &&  isRed(h.left) &&  isRed(h.right))
-        //    || (isRed(h)  && !isRed(h.left) && !isRed(h.right));
-        h.color = !h.color;
-        h.left.color = !h.left.color;
-        h.right.color = !h.right.color;
-    }
-    private Node moveRedLeft(Node h) {
-        // assert (h != null);
-        // assert isRed(h) && !isRed(h.left) && !isRed(h.left.left);
-
-        flipColors(h);
-        if (isRed(h.right.left)) {
-            h.right = rotateRight(h.right);
-            h = rotateLeft(h);
-            flipColors(h);
-        }
-        return h;
-    }
-    private Node moveRedRight(Node h) {
-              flipColors(h);
-        if (isRed(h.left.left)) {
-            h = rotateRight(h);
-            flipColors(h);
-        }
-        return h;
-    }
-    private Node balance(Node h) {
-        // assert (h != null);
-
-        if (isRed(h.right))                      h = rotateLeft(h);
-        if (isRed(h.left) && isRed(h.left.left)) h = rotateRight(h);
-        if (isRed(h.left) && isRed(h.right))     flipColors(h);
-
-        h.N = size(h.left) + size(h.right) + 1;
-        return h;
-    }
     private int height(Node x) {
         if (x == null) return -1;
         return 1 + Math.max(height(x.left), height(x.right));
     }
-    private Node min(Node x) {
-        // assert x != null;
-        if (x.left == null) return x;
-        else                return min(x.left);
-    }
-
-
-
     void printLevelOrder()    {
         int h = heightR(root);
         int i;
@@ -386,10 +271,10 @@ public class RedBlackBST<Key extends Comparable<Key>, Value> {
             return countLeaves(node.left) + countLeaves(node.right);
         }
     }
-       public void displayTree()     {
+    public void displayTree()     {
         Stack globalStack = new Stack();
         globalStack.push(root);
-        int emptyLeaf = 32;
+        int emptyLeaf = 50;
         boolean isRowEmpty = false;
         System.out.println("****..............................................................................................****");
         while(isRowEmpty==false)
@@ -409,6 +294,7 @@ public class RedBlackBST<Key extends Comparable<Key>, Value> {
                     temp.wezly = nodes(temp);
                     temp.pot1 = pot1(temp);
                     temp.lisc = countLeaves(temp);
+                    //System.out.print(temp.key);
                     System.out.print(temp.key+"(" + temp.color+")" + temp.wys + " " +temp.wezly + " " + temp.pot1 + " " + temp.lisc );
                     localStack.push(temp.left
                     );
@@ -418,7 +304,7 @@ public class RedBlackBST<Key extends Comparable<Key>, Value> {
                 }
                 else
                 {
-                    System.out.print("--");
+                    System.out.print("    --");
                     localStack.push(null);
                     localStack.push(null);
                 }
@@ -449,6 +335,7 @@ public class RedBlackBST<Key extends Comparable<Key>, Value> {
         st.printLevelOrder();
         System.out.println();
         st.displayTree();
+        System.out.println(st.search(18).key);
     }
 
 }
